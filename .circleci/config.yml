@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  jira: circleci/jira@1.3.1
+
 commands:
   destroy-environment:
     description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
@@ -301,12 +304,20 @@ workflows:
       - build-backend
       - test-frontend:
           requires: [build-frontend]
+          post-steps:
+            - jira/notify
       - test-backend:
           requires: [build-backend]
+          post-steps:
+            - jira/notify 
       - scan-backend:
           requires: [build-backend]
+          post-steps:
+            - jira/notify
       - scan-frontend:
           requires: [build-frontend]
+          post-steps:
+            - jira/notify
       # - deploy-infrastructure:
       #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
       #     filters:
