@@ -73,9 +73,6 @@ workflows:
          type: approval
          requires:
            - slack/on-hold
-           - scan-backend
-           - scan-frontend
-
          filters:
            tags:
              only: /^v.*/
