@@ -112,7 +112,7 @@ jobs:
       - checkout
       - restore_cache:
           keys: [backend-build]
-          context: slack
+          context: slack-secrets
 
       - run:
           name: Build backend
@@ -186,11 +186,10 @@ jobs:
   deploy-infrastructure:
     docker:
       - image: amazon/aws-cli
-      steps:
+    steps:
       - checkout
       - restore_cache:
           keys: [backend-build]
-          keys: [frontend-build]          
       - run:
           name: Ensure back-end infrastructure exists
           command: |
@@ -200,14 +199,16 @@ jobs:
               --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7)" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7)"  
               exit 1
+      - restore_cache:
+          keys: [frontend-build]
       - run:
           name: Ensure front-end infrastructure exist
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
               --tags project="udapeople" \
-              --stack-name "udapeople-frontend-sjgtpt270867" \
-              --parameter-overrides ID="sjgtpt270867"  
+              --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7)" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7)"  
               exit 1
       - run:
           name: Add back-end ip to ansible inventory
