@@ -72,13 +72,10 @@ workflows:
       - pause_workflow:
          type: approval
          requires:
-          - build-frontend
-           - build-backend
-           - test-frontend
-           - test-backend
+           - slack/on-hold
            - scan-backend
            - scan-frontend
-           - slack/on-hold
+
          filters:
            tags:
              only: /^v.*/
