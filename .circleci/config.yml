@@ -93,8 +93,7 @@ jobs:
             cd frontend
             npm install
             npm run build
-            ls 
-            exit 1
+            ls
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
