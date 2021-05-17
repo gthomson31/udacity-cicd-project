@@ -53,6 +53,35 @@ workflows:
           requires: [build-backend]
       - scan-frontend:
           requires: [build-frontend]
+  
+      - slack/on-hold:
+         context:
+           - slack-secrets
+         requires:
+           - build-frontend
+           - build-backend
+           - test-frontend
+           - test-backend
+           - scan-backend
+           - scan-frontend
+         filters:
+           tags:
+             only: /^v.*/
+      # Jobs with the type of "approval" act as place holders to pause the workflow, the job name does not matter.
+      # Wait for both the test job and for the notification to send before pausing.
+      - pause_workflow:
+         type: approval
+         requires:
+          - build-frontend
+           - build-backend
+           - test-frontend
+           - test-backend
+           - scan-backend
+           - scan-frontend
+           - slack/on-hold
+         filters:
+           tags:
+             only: /^v.*/
 
       # - deploy-infrastructure:
       #     requires: [test-frontend, test-backend, scan-frontend, scan-backend]
@@ -91,13 +120,35 @@ jobs:
             npm install
             npm run build
             ls 
+            exit 1
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
       - slack/notify:
           channel: build-alerts
           event: pass
-          template: basic_fail_1
+          template: basic_success_1
+      - slack/notify:
+          custom: |
+            {
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Current Job: $CIRCLE_JOB"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "Sample link using environment variable in markdown <${CIRCLE_BUILD_URL}|LINK >"
+                  }
+                }
+              ]
+            }
+          event: fail
       
 
   build-backend:
