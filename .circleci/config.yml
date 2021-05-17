@@ -82,7 +82,7 @@ jobs:
       - checkout
       - restore_cache:
           keys: [frontend-build]
-          context: my-restricted-context
+          context: slack
 
       - run:
           name: Build front-end
@@ -110,6 +110,8 @@ jobs:
       - checkout
       - restore_cache:
           keys: [backend-build]
+          context: slack
+          
       - run:
           name: Build backend
           command: |
