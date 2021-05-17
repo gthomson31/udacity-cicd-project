@@ -39,9 +39,6 @@ commands:
 workflows:
   default:
     jobs:
-      - deploy:
-          context:
-          - slack-secrets
       - build-frontend:
           context:
           - slack-secrets
