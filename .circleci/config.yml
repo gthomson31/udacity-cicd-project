@@ -15,7 +15,7 @@ commands:
           command: |
             # Your code here
             exit 1
-
+˚
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
     parameters:
@@ -143,8 +143,7 @@ jobs:
       - slack/notify:
           channel: build-alerts
           event: fail
-          template: FAIL_TEMPLATE
-      
+          template: FAIL_TEMPLATE   
 
   build-backend:
     docker:
@@ -237,8 +236,8 @@ jobs:
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
               --tags project="udapeople" \
-              --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7)" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7)"  
+              --stack-name "udapeople-backend-sjgtpt270867" \
+              --parameter-overrides ID="sjgtpt270867"  
               exit 1
       - restore_cache:
           keys: [frontend-build]
@@ -248,8 +247,8 @@ jobs:
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
               --tags project="udapeople" \
-              --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7)" \
-              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7)"  
+              --stack-name "udapeople-backend-sjgtpt270867" \
+              --parameter-overrides ID="sjgtpt270867"  
               exit 1
       - run:
           name: Add back-end ip to ansible inventory
