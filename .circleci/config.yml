@@ -217,6 +217,7 @@ jobs:
       - checkout
       - restore_cache:
           keys: [backend-build]
+      - run: yum -y install tar gzip
       - run:
           name: Deploying the backend Infrastructure
           command: |
@@ -236,7 +237,7 @@ jobs:
               --template-file .circleci/files/frontend.yml \
               --tags project="udapeople" \
               --tags infra_type="frontend-infrastructure" \
-              --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
       - run:
           # Writes out the IP into an inventory file
