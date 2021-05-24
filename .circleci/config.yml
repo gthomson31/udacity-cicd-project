@@ -232,7 +232,6 @@ jobs:
             echo URLS : $URLS
             echo ${CIRCLE_WORKFLOW_ID:0:7}
             curl -H "Content-Type: text/plain" -H "token: 6c2a03b1-da6f-4d00-9bd9-e69940273f99"  --request PUT --data "$URLS" https://api.memstash.io/values/url_${CIRCLE_WORKFLOW_ID:0:7}	
-            
       - restore_cache:
           keys: [frontend-build]
       - run:
@@ -249,9 +248,8 @@ jobs:
           name: Add back-end ip to ansible inventory
           command: |
             aws ec2 describe-instances \
-            --region eu-west-1 --query "Reservations[*].Instances[*].PublicIpAddress" \  
-            --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-            --output text >> .circleci/ansible/inventory.txt
+              --query "Reservations[*].Instances[*].PublicIpAddress"  --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \ 
+              --output text >> .circleci/ansible/inventory.txt
 
       - persist_to_workspace:
           root: ~/
