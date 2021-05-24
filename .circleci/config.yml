@@ -248,7 +248,11 @@ jobs:
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
               --tags project="udapeople" \
+<<<<<<< HEAD
               --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7)" \
+=======
+              --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7)" \
+>>>>>>> 2d0b563882d1bafcdaaf6c8d7c07f0ea36c55b30
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7)"  
               exit 1
       - run:
