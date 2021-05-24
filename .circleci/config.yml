@@ -247,6 +247,7 @@ jobs:
           # Writes out the IP into an inventory file to use for Ansible Configuration
           name: Add back-end ip to ansible inventory
           command: |
+            echo $URLS
             echo $URLS >> .circleci/ansible/inventory.txt
             cat .circleci/ansible/inventory.txt
 
@@ -275,16 +276,18 @@ jobs:
             apk add --update ansible 
       - run:
           name: Configure server
-          command: |  
-            echo ENVIRONMENT=production > “backend/.env”
-            echo TYPEORM_CONNECTION=postgres >> “backend/.env”
-            echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> “backend/.env”
-            echo TYPEORM_HOST=$TYPEORM_HOST >> “backend/.env”
-            echo TYPEORM_PORT=5532 >> “backend/.env”
-            echo TYPEORM_USERNAME= $TYPEORM_USERNAME >> “backend/.env”
-            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> “backend/.env”
+          command: |
+            pwd
+            ls
+            echo ENVIRONMENT=production > backend/.env
+            echo TYPEORM_CONNECTION=postgres >> backend/.env
+            echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> backend/.env
+            echo TYPEORM_HOST=$TYPEORM_HOST >> backend/.env
+            echo TYPEORM_PORT=5532 >> backend/.env
+            echo TYPEORM_USERNAME= $TYPEORM_USERNAME >> backend/.env
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> backend/.env
             echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> “backend/.env
-            cat “backend/.env”
+            cat backend/.env
             cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
 
