@@ -39,41 +39,82 @@ commands:
 workflows:
   default:
     jobs:
+    # Code is tested on test branches
       - build-frontend:
           context:
           - slack-secrets
           - slack-templates
+          filters:
+            branches:
+              only: [test-deployment]
+
       - build-backend:
           context:
           - slack-secrets
           - slack-templates
+          filters:
+            branches:
+              only: [test-deployment]
+
       - test-frontend:
           requires: [build-frontend]
+          filters:
+            branches:
+              only: [test-deployment]
+
       - test-backend:
           requires: [build-backend]
+          filters:
+            branches:
+              only: [test-deployment]
       - scan-backend:
           requires: [build-backend]
+          filters:
+            branches:
+              only: [test-deployment]
+      # All runs on the Master branch 
       - scan-frontend:
           requires: [build-frontend]
       - deploy-infrastructure:
           requires: [test-frontend, test-backend, scan-frontend, scan-backend]
           filters:
             branches:
-              only: [test-feature-branch]
-      # - configure-infrastructure:
-      #     requires: [deploy-infrastructure]
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
-      # - deploy-frontend:
-      #     requires: [run-migrations]
-      # - deploy-backend:
-      #     requires: [run-migrations]
-      # - smoke-test:
-      #     requires: [deploy-backend, deploy-frontend]
-      # - cloudfront-update:
-      #     requires: [smoke-test]
-      # - cleanup:
-      #     requires: [cloudfront-update]
+              only: [master]
+      - configure-infrastructure:
+          requires: [deploy-infrastructure]
+          filters:
+            branches:
+              only: [master]          
+      - run-migrations:
+          requires: [configure-infrastructure]
+          filters:
+            branches:
+              only: [master]
+      - deploy-frontend:
+          requires: [run-migrations]
+          filters:
+            branches:
+              only: [master]
+      - deploy-backend:
+          requires: [run-migrations]
+          filters:
+            branches:
+              only: [master]
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
+          filters:
+            branches:
+              only: [master]          
+      - cloudfront-update:
+          requires: [smoke-test]
+          filters:
+            branches:
+              only: [master]
+      - cleanup:
+          requires: [cloudfront-update]
+          filters:
+            branches:
+              only: [master]
 
 jobs:
   build-frontend:
@@ -207,11 +248,7 @@ jobs:
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
               --tags project="udapeople" \
-<<<<<<< HEAD
               --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7)" \
-=======
-              --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7)" \
->>>>>>> 2039153adb8a5010035ce22de4732930cb306006
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7)"  
               exit 1
       - run:
