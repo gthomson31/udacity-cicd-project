@@ -218,28 +218,30 @@ jobs:
       - restore_cache:
           keys: [backend-build]
       - run:
-          name: Ensure back-end infrastructure exists
+          name: Deploying the backend Infrastructure
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
               --tags project="udapeople" \
               --tags infra_type="backend-infrastructure" \
-              --stack-name "udapeople-backend-sjgtpt270867" \
-              --parameter-overrides ID="sjgtpt270867"  
+              --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
+
               exit 1
       - restore_cache:
           keys: [frontend-build]
       - run:
-          name: Ensure front-end infrastructure exist
+          name: Deploying the front end Infrastructure
           command: |
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
               --tags project="udapeople" \
               --tags infra_type="frontend-infrastructure" \
-              --stack-name "udapeople-backend-sjgtpt270867" \
-              --parameter-overrides ID="sjgtpt270867"  
+              --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+              --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  
               exit 1
       - run:
+          # Writes out the IP into an inventory file
           name: Add back-end ip to ansible inventory
           command: |
             aws ec2 describe-instances \
