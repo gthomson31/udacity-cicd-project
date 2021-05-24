@@ -223,6 +223,7 @@ jobs:
             aws cloudformation deploy \
               --template-file .circleci/files/backend.yml \
               --tags project="udapeople" \
+              --tags infra_type="backend-infrastructure" \
               --stack-name "udapeople-backend-sjgtpt270867" \
               --parameter-overrides ID="sjgtpt270867"  
               exit 1
@@ -234,6 +235,7 @@ jobs:
             aws cloudformation deploy \
               --template-file .circleci/files/frontend.yml \
               --tags project="udapeople" \
+              --tags infra_type="frontend-infrastructure" \
               --stack-name "udapeople-backend-sjgtpt270867" \
               --parameter-overrides ID="sjgtpt270867"  
               exit 1
