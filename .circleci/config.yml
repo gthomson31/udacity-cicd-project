@@ -15,7 +15,7 @@ commands:
           command: |
             # Your code here
             exit 1
-˚
+
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
     parameters:
@@ -80,41 +80,41 @@ workflows:
           filters:
             branches:
               only: [master]
-      - configure-infrastructure:
-          requires: [deploy-infrastructure]
-          filters:
-            branches:
-              only: [master]          
-      - run-migrations:
-          requires: [configure-infrastructure]
-          filters:
-            branches:
-              only: [master]
-      - deploy-frontend:
-          requires: [run-migrations]
-          filters:
-            branches:
-              only: [master]
-      - deploy-backend:
-          requires: [run-migrations]
-          filters:
-            branches:
-              only: [master]
-      - smoke-test:
-          requires: [deploy-backend, deploy-frontend]
-          filters:
-            branches:
-              only: [master]          
-      - cloudfront-update:
-          requires: [smoke-test]
-          filters:
-            branches:
-              only: [master]
-      - cleanup:
-          requires: [cloudfront-update]
-          filters:
-            branches:
-              only: [master]
+      # - configure-infrastructure:
+      #     requires: [deploy-infrastructure]
+      #     filters:
+      #       branches:
+      #         only: [master]          
+      # - run-migrations:
+      #     requires: [configure-infrastructure]
+      #     filters:
+      #       branches:
+      #         only: [master]
+      # - deploy-frontend:
+      #     requires: [run-migrations]
+      #     filters:
+      #       branches:
+      #         only: [master]
+      # - deploy-backend:
+      #     requires: [run-migrations]
+      #     filters:
+      #       branches:
+      #         only: [master]
+      # - smoke-test:
+      #     requires: [deploy-backend, deploy-frontend]
+      #     filters:
+      #       branches:
+      #         only: [master]          
+      # - cloudfront-update:
+      #     requires: [smoke-test]
+      #     filters:
+      #       branches:
+      #         only: [master]
+      # - cleanup:
+      #     requires: [cloudfront-update]
+      #     filters:
+      #       branches:
+      #         only: [master]
 
 jobs:
   build-frontend:
