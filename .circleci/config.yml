@@ -74,19 +74,13 @@ workflows:
          
       - run-migrations:
           requires: [configure-infrastructure]
-          filters:
-            branches:
-              only: [master]
+  
       - deploy-frontend:
           requires: [run-migrations]
-          filters:
-            branches:
-              only: [master]
-      # - deploy-backend:
-      #     requires: [run-migrations]
-      #     filters:
-      #       branches:
-      #         only: [master]
+
+      - deploy-backend:
+          requires: [run-migrations]
+  
       # - smoke-test:
       #     requires: [deploy-backend, deploy-frontend]
       #     filters:
@@ -345,22 +339,31 @@ jobs:
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
                     
-#   deploy-backend:
-#     docker:
-#       # Docker image here that supports Ansible
-#     steps:
-#       # Checkout code from git
-#       # Add ssh keys with fingerprint
-#       # attach workspace
-#       - run:
-#           name: Install dependencies
-#           command: |
-#             # your code here
-#       - run:
-#           name: Deploy backend
-#           command: |
-#             # your code here
-#       # Here's where you will add some code to rollback on failure  
+  deploy-backend:
+      docker:
+        - image: python:3.7-alpine3.11
+      steps:
+        - checkout
+        - attach_workspace:
+            at: ~/
+        - add_ssh_keys:
+            fingerprints: ["91:3e:d9:88:7b:88:c5:59:13:36:b5:27:50:3b:f8:21"] 
+      - run:
+          name: Install dependencies
+          command: |
+            apk add --update ansible tar gzip ansible nodejs npm curl
+            pip install awscli
+      - run:
+          name: Deploy backend
+          command: |
+            echo "My current workspace is : " 
+            pwd
+            ls -la
+            cat backend/.env
+            cat .circleci/ansible/inventory.txt
+            tar -cvf backend.tar backend
+            ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
+      # Here's where you will add some code to rollback on failure  
 
 #   smoke-test:
 #     docker:
