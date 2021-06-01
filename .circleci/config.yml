@@ -363,8 +363,6 @@ jobs:
           command: |
               apk add --update ansible tar gzip ansible nodejs npm curl
               pip install awscli
-    steps:
-      - checkout
       - run:
           name: Get backend EC2 url
           working_directory: ./frontend
