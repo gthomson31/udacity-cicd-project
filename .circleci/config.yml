@@ -363,7 +363,9 @@ jobs:
             cat .circleci/ansible/inventory.txt
             tar -cvf backend.tar backend
             ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
-      # Here's where you will add some code to rollback on failure  
+      # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
 #   smoke-test:
 #     docker:
