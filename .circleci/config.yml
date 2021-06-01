@@ -296,17 +296,42 @@ jobs:
       - checkout
       - run:
           name: run and save migration 
+          working_directory: ./backend
           command: |
-            cd backend
-            npm install
-            echo "running migrations"
-            npm run migrations > migrations.txt
-            cat migrations.txt
-      - run:
+            echo "BUILDING THE BACKEND ENVIRONMENT FILE FOR POSTGRES MIGRATIONS"
+            echo ENVIROMENT=production > .env
+            echo TYPEORM_CONNECTION=postgres >> .env
+            echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> .env
+            echo TYPEORM_ENTITIES=./src/modules/domain/**/*.entity.ts >> .env
+            echo TYPEORM_MIGRATIONS=./src/migrations/*.ts >> .env
+            echo TYPEORM_HOST=$TYPEORM_HOST >> .env
+            echo TYPEORM_PORT=$TYPEORM_PORT >> .env
+            echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> .env
+            echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> .env
+            echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> .env
+
+            echo "INSTALLING NPM MODULE DEPENDENCIES"
+            npm i > npminstall.log
+
+            echo "INSTALLING OATH-SIGN PACKAGE"
+            npm install oauth-sign >> npminstall.log
+            
+            echo "RUNNING POSTGRES DATABASE MIGRATIONS"
+            npm run migrations > migration.log
+      - run:  
           name: Send results to memstash
           command: |
-            curl -H "Content-Type: text/plain" -H "token: sjgt270867" --request PUT --data "1" \
-             https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+              if [[ $(grep -i "has been executed successfully" migration.log | wc -l) -ge 1 ]]; then
+                echo "SUCCESSFULLY EXECUTED THE DATABASE MIGRATIONS"
+                curl -H "Content-Type: text/plain" -H "token: sjgt270867" --request PUT \
+                  --data "Migration successful" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+              else
+                echo "FAILED TO RUN THE DATABASE MIGRATIONS"
+                curl -H "Content-Type: text/plain" -H "token: sjgt270867" --request PUT \
+                  --data "Migration failed" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+              fi
+              echo "STORING THE RESULTS OF THE DATABASE MIGRATIONS IN MEMSTASH FOR LATER EVALUATION"
+
       # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
@@ -317,14 +342,14 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Get backend url
+          name: Get backend EC2 url
+          working_directory: ./backend
           command: |
             export BACKEND_IP=$(curl -H "token: sjgt270867" --request GET \
             https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID})
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
 
-            cd frontend
             echo "${API_URL}" > apiurl.txt
       - run:
           name: Deploy frontend objects
@@ -365,7 +390,7 @@ jobs:
             ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
       # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
       - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}  
 
 #   smoke-test:
 #     docker:
