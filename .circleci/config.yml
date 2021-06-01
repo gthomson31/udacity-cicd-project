@@ -295,6 +295,10 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Install dependencies
+          command: |
+              pip install awscli
+      - run:
           name: run and save migration 
           working_directory: ./backend
           command: |
