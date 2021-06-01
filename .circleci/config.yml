@@ -343,7 +343,7 @@ jobs:
       - checkout
       - run:
           name: Get backend EC2 url
-          working_directory: ./backend
+          working_directory: ./frontend
           command: |
             export BACKEND_IP=$(curl -H "token: sjgt270867" --request GET \
             https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID})
@@ -353,12 +353,11 @@ jobs:
             echo "${API_URL}" > apiurl.txt
       - run:
           name: Deploy frontend objects
+          working_directory: ./frontend
           command: |
-            cd frontend
             export API_URL=$(cat apiurl.txt)
             npm install
             npm run build
-            ls -la
             aws s3 sync dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}
       # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
       - destroy-environment:
