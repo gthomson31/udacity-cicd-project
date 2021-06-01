@@ -228,10 +228,10 @@ jobs:
               --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
             pwd
-            export URLS=$(aws ec2 describe-instances --region eu-west-1 --query "Reservations[*].Instances[*].PublicIpAddress"  --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}"  --output text)
-            echo URLS : $URLS
+            export BACKEND_IP=$(aws ec2 describe-instances --region eu-west-1 --query "Reservations[*].Instances[*].PublicIpAddress"  --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}"  --output text)
+            echo BACKEND_IP : $BACKEND_IP
             echo ${CIRCLE_WORKFLOW_ID:0:7}
-            curl -H "Content-Type: text/plain" -H "token: 6c2a03b1-da6f-4d00-9bd9-e69940273f99"  --request PUT --data "$URLS" https://api.memstash.io/values/url_${CIRCLE_WORKFLOW_ID:0:7}	
+            curl -H "Content-Type: text/plain" -H "token: sjgt270867"  --request PUT --data "$URLS" https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID:0:7}	
       - restore_cache:
           keys: [frontend-build]
       - run:
@@ -291,45 +291,56 @@ jobs:
             cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
 
-      # Here's where you will add some code to rollback on failure      
+      # On failure 
+      - destroy-environment     
 
-#   run-migrations:
-#     docker:
-#       # Docker image here that supports NodeJS
-#     steps:
-#       # Checkout code from git
-#       - run:
-#           name: Run migrations
-#           command: |
-#             # Your code here
-#             exit 1
-#       - run:
-#           name: Send migration results to memstash
-#           command: |
-#             # Your code here
-#             exit 1
-#      # Here's where you will add some code to rollback on failure      
+  run-migrations:
+    docker:
+      - image: circleci/node:13.8.0
+    steps:
+      - checkout
+      - run:
+          name: run and save migration 
+          command: |
+            cd backend
+            npm install
+            echo "running migrations"
+            npm run migrations > migrations.txt
+            cat migrations.txt
+      - run:
+          name: Send results to memstash
+          command: |
+            curl -H "Content-Type: text/plain" -H "token: sjgt270867" --request PUT --data "1" \
+             https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+      # On failure 
+      - destroy-environment  
 
-#   deploy-frontend:
-#     docker:
-#       # Docker image here that supports AWS CLI
-#     steps:
-#       # Checkout code from git
-#       - run:
-#           name: Install dependencies
-#           command: |
-#             # your code here
-#       - run:
-#           name: Get backend url
-#           command: |
-#             # your code here
-#             export API_URL="http://${BACKEND_IP}:3030"
-#             echo "${API_URL}"
-#       - run:
-#           name: Deploy frontend objects
-#           command: |
-#             # your code here
-#       # Here's where you will add some code to rollback on failure      
+  deploy-frontend:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Get backend url
+          command: |
+            export BACKEND_IP=$(curl -H "token: sjgt270867" --request GET \
+            https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID})
+            export API_URL="http://${BACKEND_IP}:3030"
+            echo "${API_URL}"
+
+            cd frontend
+            echo "${API_URL}" > apiurl.txt
+      - run:
+          name: Deploy frontend objects
+          command: |
+            cd frontend
+            export API_URL=$(cat apiurl.txt)
+            npm install
+            npm run build
+            ls -la
+            aws s3 sync dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}
+      # On failure 
+      - destroy-environment  
                     
 #   deploy-backend:
 #     docker:
