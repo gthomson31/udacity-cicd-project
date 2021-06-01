@@ -72,16 +72,16 @@ workflows:
       - configure-infrastructure:
           requires: [deploy-infrastructure]
          
-      # - run-migrations:
-      #     requires: [configure-infrastructure]
-      #     filters:
-      #       branches:
-      #         only: [master]
-      # - deploy-frontend:
-      #     requires: [run-migrations]
-      #     filters:
-      #       branches:
-      #         only: [master]
+      - run-migrations:
+          requires: [configure-infrastructure]
+          filters:
+            branches:
+              only: [master]
+      - deploy-frontend:
+          requires: [run-migrations]
+          filters:
+            branches:
+              only: [master]
       # - deploy-backend:
       #     requires: [run-migrations]
       #     filters:
@@ -291,8 +291,9 @@ jobs:
             cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
 
-      # On failure 
-      - destroy-environment     
+      # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}    
 
   run-migrations:
     docker:
@@ -312,8 +313,9 @@ jobs:
           command: |
             curl -H "Content-Type: text/plain" -H "token: sjgt270867" --request PUT --data "1" \
              https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
-      # On failure 
-      - destroy-environment  
+      # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
   deploy-frontend:
     docker:
@@ -339,8 +341,9 @@ jobs:
             npm run build
             ls -la
             aws s3 sync dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}
-      # On failure 
-      - destroy-environment  
+      # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
                     
 #   deploy-backend:
 #     docker:
