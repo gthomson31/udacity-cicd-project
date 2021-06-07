@@ -82,11 +82,9 @@ workflows:
       - deploy-backend:
           requires: [run-migrations]
   
-      # - smoke-test:
-      #     requires: [deploy-backend, deploy-frontend]
-      #     filters:
-      #       branches:
-      #         only: [master]          
+      - smoke-test:
+          requires: [deploy-backend, deploy-frontend]
+       
       # - cloudfront-update:
       #     requires: [smoke-test]
       #     filters:
@@ -475,6 +473,11 @@ jobs:
                 --query 'Reservations[*].Instances[*].PublicIpAddress' \
                 --output text)
                 curl "http://${BACKEND_IP}:3030/api/status"
+                
+      # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
+      - destroy-environment:
+          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+
 
 #   cloudfront-update:
 #     docker:
