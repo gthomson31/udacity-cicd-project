@@ -329,12 +329,17 @@ jobs:
             echo $TYPEORM_DATABASE
             
             echo "RUNNING POSTGRES DATABASE MIGRATIONS"
-            npm run migrations > migration.log
+            sudo npm run migrations > migration.log
+
 
             MIGRATION_LOG=/root/project/backend/migration.log
             if test -f "$MIGRATION_LOG"; then
                 echo "$MIGRATION_LOG exists."
             fi
+
+            echo "Output of the migration log"
+            cat migration.log
+
 
       - run:  
           name: Send results to memstash
@@ -355,7 +360,6 @@ jobs:
                   --data "Migration successful" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
               else
                 echo "FAILED TO RUN THE DATABASE MIGRATIONS"
-                cat $MIGRATION_LOG
                 echo "Writing out to memstash : https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}"
                 curl -H "Content-Type: text/plain" -H "token: sjgt270867" --request PUT \
                   --data "Migration failed" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
@@ -379,11 +383,14 @@ jobs:
       - run:
           name: Get backend EC2 url
           command: |
-            #Memstash to pull out backend ip
+            #Use Memstash to pull out backend ip
+            
             echo "URL to call on for IP : https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID:0:7}"
             export BACKEND_IP=$(curl -H "token: sjgt270867" --request GET https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID:0:7})
+            
             echo $BACKEND_IP
             export API_URL="http://${BACKEND_IP}:3030"
+
             echo "${API_URL}"
             echo "${API_URL}" > apiurl.txt
       - run:
