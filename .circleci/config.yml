@@ -328,6 +328,8 @@ jobs:
             echo "PWD: " $(pwd)
             echo $TYPEORM_DATABASE
             
+            npm run migrations:revert
+
             echo "RUNNING POSTGRES DATABASE MIGRATIONS"
             npm run migrations > migration.log
 
@@ -471,6 +473,7 @@ jobs:
                 if curl -s ${URL} | grep "Welcome"
                 then
                   return 0
+                  echo "Smoke Test Success"
                 else
                   return 1
                 fi
@@ -479,7 +482,13 @@ jobs:
               command: |
                 export BACKEND_IP=$(curl -H "token: sjgt270867" --request GET https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID:0:7})
                 echo $BACKEND_IP
-                curl "http://${BACKEND_IP}:3030/api/status"
+                if curl -s "http://${BACKEND_IP}:3030/api/status"
+                then
+                  return 0
+                  echo "Smoke Test Success"
+                else
+                  return 1
+                fi
 
       # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
           - destroy-environment:
