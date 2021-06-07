@@ -225,7 +225,8 @@ jobs:
             pwd
             export BACKEND_IP=$(aws ec2 describe-instances --region eu-west-1 --query "Reservations[*].Instances[*].PublicIpAddress"  --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}"  --output text)
             echo BACKEND_IP : $BACKEND_IP
-            echo ${CIRCLE_WORKFLOW_ID:0:7}
+            echo CIRCLE CI RUN : ${CIRCLE_WORKFLOW_ID:0:7}
+            echo Memstash URL : https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID:0:7}
             curl -H "Content-Type: text/plain" -H "token: sjgt270867"  --request PUT --data "$BACKEND_IP" https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID:0:7}	
       - restore_cache:
           keys: [frontend-build]
@@ -332,14 +333,24 @@ jobs:
             echo "RUNNING POSTGRES DATABASE MIGRATIONS"
             npm run migrations > migration.log
 
-            ls 
+            MIGRATION_LOG=/root/project/backend/migration.log
+            if test -f "$MIGRATION_LOG"; then
+                echo "$MIGRATION_LOG exists."
+            fi
 
       - run:  
           name: Send results to memstash
           working_directory: ./backend
           command: |
               
-              if [[ $(grep -i "has been executed successfully" migration.log | wc -l) -ge 1 ]]; then
+              ## Check current working DIR and check contents
+
+              MIGRATION_LOG=/root/project/backend/migration.log
+              if test -f "$MIGRATION_LOG"; then
+                  echo "$MIGRATION_LOG exists."
+              fi
+
+              if [[ $(grep -i "has been executed successfully" $MIGRATION_LOG | wc -l) -ge 1 ]]; then
                 echo "SUCCESSFULLY EXECUTED THE DATABASE MIGRATIONS"
                 echo "Writing out to memstash : https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}"
                 curl -H "Content-Type: text/plain" -H "token: sjgt270867" --request PUT \
@@ -370,8 +381,10 @@ jobs:
       - run:
           name: Get backend EC2 url
           command: |
-            export BACKEND_IP=$(curl -H "token: sjgt270867" --request GET \
-            https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID})
+            #Memstash to pull out backend ip
+            echo "URL to call on for IP : https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID}"
+            export BACKEND_IP=$(curl -H "token: sjgt270867" --request GET https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID})
+            echo $BACKEND_IP
             export API_URL="http://${BACKEND_IP}:3030"
             echo "${API_URL}"
             echo "${API_URL}" > apiurl.txt
