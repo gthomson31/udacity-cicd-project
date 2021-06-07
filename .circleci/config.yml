@@ -226,7 +226,7 @@ jobs:
             export BACKEND_IP=$(aws ec2 describe-instances --region eu-west-1 --query "Reservations[*].Instances[*].PublicIpAddress"  --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}"  --output text)
             echo BACKEND_IP : $BACKEND_IP
             echo ${CIRCLE_WORKFLOW_ID:0:7}
-            curl -H "Content-Type: text/plain" -H "token: sjgt270867"  --request PUT --data "$URLS" https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID:0:7}	
+            curl -H "Content-Type: text/plain" -H "token: sjgt270867"  --request PUT --data "$BACKEND_IP" https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID:0:7}	
       - restore_cache:
           keys: [frontend-build]
       - run:
@@ -332,17 +332,24 @@ jobs:
             echo "RUNNING POSTGRES DATABASE MIGRATIONS"
             npm run migrations > migration.log
 
+            ls 
+
       - run:  
           name: Send results to memstash
+          working_directory: ./backend
           command: |
+              
               if [[ $(grep -i "has been executed successfully" migration.log | wc -l) -ge 1 ]]; then
                 echo "SUCCESSFULLY EXECUTED THE DATABASE MIGRATIONS"
+                echo "Writing out to memstash : https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}"
                 curl -H "Content-Type: text/plain" -H "token: sjgt270867" --request PUT \
                   --data "Migration successful" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
               else
                 echo "FAILED TO RUN THE DATABASE MIGRATIONS"
+                echo "Writing out to memstash : https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}"
                 curl -H "Content-Type: text/plain" -H "token: sjgt270867" --request PUT \
                   --data "Migration failed" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
+
               fi
               echo "STORING THE RESULTS OF THE DATABASE MIGRATIONS IN MEMSTASH FOR LATER EVALUATION"
 
