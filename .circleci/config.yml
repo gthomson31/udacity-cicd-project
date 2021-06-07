@@ -363,7 +363,6 @@ jobs:
                 echo "Writing out to memstash : https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}"
                 curl -H "Content-Type: text/plain" -H "token: sjgt270867" --request PUT \
                   --data "Migration failed" https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7}
-                exit 1
               fi
 
       # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
