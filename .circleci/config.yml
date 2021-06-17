@@ -109,7 +109,6 @@ jobs:
           name: Build front-end
           command: |
             cd frontend
-            rm -rd node_modules
             npm install
             npm run build
             ls
@@ -137,11 +136,9 @@ jobs:
           name: Build backend
           command: |
             cd backend
-            ls
-            rm -rd node_modules
-            ls
             npm install
             npm run build
+            ls
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build-$CIRCLE_WORKFLOW_ID:0:7
