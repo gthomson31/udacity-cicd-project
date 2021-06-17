@@ -139,6 +139,7 @@ jobs:
           name: Build backend
           command: |
             cd backend
+            ls
             rm -rf backend/node_modules
             npm install
             npm run build
