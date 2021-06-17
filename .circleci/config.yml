@@ -110,7 +110,7 @@ jobs:
           name: Build front-end
           command: |
             cd frontend
-            rm -rf frontend/node_modules
+            rm -rd node_modules
             npm install
             npm run build
             ls
@@ -140,10 +140,10 @@ jobs:
           command: |
             cd backend
             ls
-            rm -rf backend/node_modules
+            rm -rd node_modules
+            ls
             npm install
             npm run build
-            ls 
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
