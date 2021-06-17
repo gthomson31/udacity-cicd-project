@@ -110,6 +110,7 @@ jobs:
           name: Build front-end
           command: |
             cd frontend
+            rm -rf frontend/node_modules
             npm install
             npm run build
             ls
@@ -138,6 +139,7 @@ jobs:
           name: Build backend
           command: |
             cd backend
+            rm -rf backend/node_modules
             npm install
             npm run build
             ls 
