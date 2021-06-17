@@ -103,23 +103,19 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [frontend-build-${CIRCLE_WORKFLOW_ID:0:7}-${CIRCLE_WORKFLOW_ID:0:7}]
+          keys: [frontend-build-$CIRCLE_WORKFLOW_ID:0:7]
           context: slack-secrets
-
       - run:
           name: Build front-end
           command: |
             cd frontend
-<<<<<<< HEAD
-=======
             rm -rd node_modules
->>>>>>> b7a90402a43db119f11d6f74bf8e3eb9898d2d66
             npm install
             npm run build
             ls
       - save_cache:
           paths: [frontend/node_modules]
-          key: frontend-build-${CIRCLE_WORKFLOW_ID:0:7}
+          key: frontend-build-$CIRCLE_WORKFLOW_ID:0:7
       - slack/notify:
           channel: build-alerts
           event: pass
@@ -135,9 +131,8 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [backend-build-${CIRCLE_WORKFLOW_ID:0:7}]
+          keys: [backend-build-$CIRCLE_WORKFLOW_ID:0:7]
           context: slack-secrets
-
       - run:
           name: Build backend
           command: |
@@ -149,7 +144,7 @@ jobs:
             npm run build
       - save_cache:
           paths: [backend/node_modules]
-          key: backend-build-${CIRCLE_WORKFLOW_ID:0:7}
+          key: backend-build-$CIRCLE_WORKFLOW_ID:0:7
 
   test-frontend:
     docker:
@@ -157,7 +152,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [frontend-build-${CIRCLE_WORKFLOW_ID:0:7}]
+          keys: [frontend-build-$CIRCLE_WORKFLOW_ID:0:7]
       - run:
           name: test-frontend
           command: |
@@ -172,7 +167,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [backend-build-${CIRCLE_WORKFLOW_ID:0:7}]
+          keys: [backend-build-$CIRCLE_WORKFLOW_ID:0:7]
       - run:
           name: backend-build-${CIRCLE_WORKFLOW_ID:0:7}-test
           command: |
@@ -187,7 +182,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [frontend-build-${CIRCLE_WORKFLOW_ID:0:7}]
+          keys: [frontend-build-$CIRCLE_WORKFLOW_ID:0:7]
       - run:
           name: frontend-build-${CIRCLE_WORKFLOW_ID:0:7}-test
           command: |
@@ -201,7 +196,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [backend-build-${CIRCLE_WORKFLOW_ID:0:7}]
+          keys: [backend-build-$CIRCLE_WORKFLOW_ID:0:7]
       - run:
           name: backend-build-${CIRCLE_WORKFLOW_ID:0:7}-test
           command: |
@@ -215,7 +210,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [backend-build-${CIRCLE_WORKFLOW_ID:0:7}]
+          keys: [backend-build-$CIRCLE_WORKFLOW_ID:0:7]
       - run: yum -y install tar gzip
       - run:
           name: Deploying the backend Infrastructure
@@ -233,7 +228,7 @@ jobs:
             echo Memstash URL : https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID:0:7}
             curl -H "Content-Type: text/plain" -H "token: sjgt270867"  --request PUT --data "$BACKEND_IP" https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID:0:7}	
       - restore_cache:
-          keys: [frontend-build-${CIRCLE_WORKFLOW_ID:0:7}]
+          keys: [frontend-build-$CIRCLE_WORKFLOW_ID:0:7]
       - run:
           name: Deploying the front end Infrastructure
           command: |
