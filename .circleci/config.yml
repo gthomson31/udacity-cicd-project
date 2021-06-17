@@ -483,7 +483,7 @@ jobs:
               command: |
                 export BACKEND_IP=$(curl -H "token: sjgt270867" --request GET https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID:0:7})
                 echo $BACKEND_IP
-                echo http://${BACKEND_IP}:3030/api/status"
+                echo "http://${BACKEND_IP}:3030/api/status"
 
                 if curl "http://${BACKEND_IP}:3030/api/status"
                 then
