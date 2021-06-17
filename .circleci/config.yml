@@ -99,7 +99,7 @@ workflows:
 jobs:
   build-frontend:
     docker:
-      - image: circleci/node:latest
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -127,7 +127,7 @@ jobs:
 
   build-backend:
     docker:
-      - image: circleci/node:latest
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -148,8 +148,7 @@ jobs:
 
   test-frontend:
     docker:
-      - image: circleci/node:latest
-    steps:
+      - image: circleci/node:13.8.0
       - checkout
       - restore_cache:
           keys: [frontend-build]
@@ -163,7 +162,7 @@ jobs:
                        
   test-backend:
     docker:
-      - image: circleci/node:latest
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -178,7 +177,7 @@ jobs:
 
   scan-frontend:
     docker:
-      - image: circleci/node:latest
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
@@ -192,7 +191,7 @@ jobs:
 
   scan-backend:
     docker:
-      - image: circleci/node:latest
+      - image: circleci/node:13.8.0
     steps:
       - checkout
       - restore_cache:
