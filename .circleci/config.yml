@@ -138,7 +138,7 @@ jobs:
           name: Build backend
           command: |
             cd backend
-            npm audit --audit-level=critical --fix
+            npm audit
             npm install
             npm run build
             ls 
@@ -149,6 +149,7 @@ jobs:
   test-frontend:
     docker:
       - image: circleci/node:13.8.0
+    steps:
       - checkout
       - restore_cache:
           keys: [frontend-build]
