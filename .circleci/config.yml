@@ -138,6 +138,7 @@ jobs:
           name: Build backend
           command: |
             cd backend
+            npm audit
             npm install
             npm run build
             ls 
