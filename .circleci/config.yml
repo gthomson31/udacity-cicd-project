@@ -424,6 +424,9 @@ jobs:
             command: |
               apk add --update ansible tar gzip ansible nodejs npm curl
               pip install awscli
+              apk add openssh-client
+
+          
         - run:
             name: Deploy backend
             command: |
