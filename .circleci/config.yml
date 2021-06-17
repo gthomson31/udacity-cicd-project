@@ -494,9 +494,9 @@ jobs:
                   return 1
                 fi
 
-      # # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
-      #     - destroy-environment:
-      #         workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
+      # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
+          - destroy-environment:
+              workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
 
 
 #   cloudfront-update:
