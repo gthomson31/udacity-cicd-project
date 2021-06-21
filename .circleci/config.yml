@@ -442,6 +442,7 @@ jobs:
         - run:
             name: Deploy backend
             command: |
+              ls -la
               echo "My current workspace is : $(pwd)" 
               echo "BUILDING THE BACKEND ENVIRONMENT FILE"
               echo ENVIROMENT=production > backend/.env
@@ -457,10 +458,12 @@ jobs:
 
               cd /home
               tar czf backend.tar.gz -P /home/circleci/project/backend/dist  
+              ls -la
+
               ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
 
-        # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
-        - destroy-environment
+        # # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
+        # - destroy-environment
 
   smoke-test:
       docker:
