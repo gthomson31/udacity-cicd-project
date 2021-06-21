@@ -424,9 +424,8 @@ jobs:
             command: |
               apk add --update ansible tar gzip ansible nodejs npm curl
               pip install awscli
-              apk add openssh-client
+              apk add openssh-client 
 
-          
         - run:
             name: Deploy backend
             command: |
@@ -447,7 +446,7 @@ jobs:
               cat backend/.env
               cat .circleci/ansible/inventory.txt
               tar -cvf backend.tar backend
-              ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
+              ANSIBLE_HOST_KEY_CHECKING=false ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
 
         # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
         - destroy-environment:
