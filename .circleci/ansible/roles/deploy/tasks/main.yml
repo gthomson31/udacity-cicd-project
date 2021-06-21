@@ -1,36 +1,33 @@
 ---
 
+- name: Check current directorys 
+  shell: |
+    ls -la
 
-- name: Creates directory
-  file:
-    path: /home/ubuntu/backend
-    state: directory
-
-- name: Copy backend dist files to remote server
+- name: Copy backend file repo 
+  become: true
   copy:
-    src: /root/project/backend
-    dest: /home/ubuntu
+    src: /home/backend.tar.gz
+    dest: /home/ubuntu/backend.tar.gz
 
 - name: Install Node modules
   shell: |
-    cd /home/ubuntu/backend
-    ls -la
-    printenv
-    npm install
+    cd /home/ubuntu/
+    tar xzvf backend.tar.gz
+    mv home/circleci/project/backend .
+    cd backend
+    sudo npm install
     
 - name: building node services
   shell: |
     cd /home/ubuntu/backend
-    npm run build
+    sudo npm run build
 
-- name: "run migrations again"
-  shell: |
-    cd /home/ubuntu/backend
-    npm run migrations
     
-- name: Executing node
+- name: starting up PM2
   become: true
   shell: |
     cd /home/ubuntu/backend 
     pm2 start npm --name backend -- start
     pm2 ls
+

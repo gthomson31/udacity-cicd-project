@@ -103,7 +103,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [frontend-build-$CIRCLE_WORKFLOW_ID:0:7]
+          keys: [frontend-build] # -<< pipeline.id >>
           context: slack-secrets
       - run:
           name: Build front-end
@@ -114,7 +114,7 @@ jobs:
             ls
       - save_cache:
           paths: [frontend/node_modules]
-          key: frontend-build-$CIRCLE_WORKFLOW_ID:0:7
+          key: frontend-build # -<< pipeline.id >>
       - slack/notify:
           channel: build-alerts
           event: pass
@@ -130,7 +130,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [backend-build-$CIRCLE_WORKFLOW_ID:0:7]
+          keys: ["backend-build"] # -<< pipeline.id >>
           context: slack-secrets
       - run:
           name: Build backend
@@ -141,7 +141,15 @@ jobs:
             ls
       - save_cache:
           paths: [backend/node_modules]
-          key: backend-build-$CIRCLE_WORKFLOW_ID:0:7
+          key: backend-build  # -<< pipeline.id >>
+      - save_cache:
+          paths: [backend/dist]
+          key: backend-dist  # -<< pipeline.id >>
+      - slack/notify:
+          channel: build-alerts      
+          event: fail
+          template: FAIL_TEMPLATE
+          
 
   test-frontend:
     docker:
@@ -149,11 +157,10 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [frontend-build-$CIRCLE_WORKFLOW_ID:0:7]
+          keys: ["frontend-build"] # -<< pipeline.id >>
       - run:
           name: test-frontend
           command: |
-            ls frontend
             cd frontend
             npm install
             npm run test    
@@ -164,11 +171,10 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [backend-build-$CIRCLE_WORKFLOW_ID:0:7]
+          keys: ["backend-build"] # -<< pipeline.id >>
       - run:
           name: backend-build-${CIRCLE_WORKFLOW_ID:0:7}-test
           command: |
-            ls backend
             cd backend
             npm install
             npm run test    
@@ -179,7 +185,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [frontend-build-$CIRCLE_WORKFLOW_ID:0:7]
+          keys: ["frontend-build"] # -<< pipeline.id >>
       - run:
           name: frontend-build-${CIRCLE_WORKFLOW_ID:0:7}-test
           command: |
@@ -193,7 +199,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [backend-build-$CIRCLE_WORKFLOW_ID:0:7]
+          keys: ["backend-build"] # -<< pipeline.id >>
       - run:
           name: backend-build-${CIRCLE_WORKFLOW_ID:0:7}-test
           command: |
@@ -207,7 +213,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [backend-build-$CIRCLE_WORKFLOW_ID:0:7]
+          keys: ["backend-build"] # -<< pipeline.id >>
       - run: yum -y install tar gzip
       - run:
           name: Deploying the backend Infrastructure
@@ -218,14 +224,15 @@ jobs:
               --tags Name="backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
               --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"
-            pwd
+
             export BACKEND_IP=$(aws ec2 describe-instances --region eu-west-1 --query "Reservations[*].Instances[*].PublicIpAddress"  --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}"  --output text)
+            echo "Confirming EC2 instance has been created"
             echo BACKEND_IP : $BACKEND_IP
             echo CIRCLE CI RUN : ${CIRCLE_WORKFLOW_ID:0:7}
             echo Memstash URL : https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID:0:7}
             curl -H "Content-Type: text/plain" -H "token: sjgt270867"  --request PUT --data "$BACKEND_IP" https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID:0:7}	
       - restore_cache:
-          keys: [frontend-build-$CIRCLE_WORKFLOW_ID:0:7]
+          keys: ["frontend-build"] # -<< pipeline.id >>
       - run:
           name: Deploying the front end Infrastructure
           command: |
@@ -265,7 +272,8 @@ jobs:
       - run:
           name: Install dependencies
           command: |
-            apk add --update ansible 
+            apk add --update ansible
+            cat .circleci/ansible/inventory.txt 
       - run:
           name: Configure server
           command: |
@@ -401,11 +409,8 @@ jobs:
             export API_URL=$(cat apiurl.txt)
             npm install
             npm run build
-            aws s3 sync dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}
-      - persist_to_workspace:
-          root: .
-          paths:
-            - frontend/dist
+            aws s3 sync dist s3://udapeople-<< pipeline.parameters.workflow-id >>"
+
       # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
       - destroy-environment:
           workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}
@@ -432,11 +437,12 @@ jobs:
             command: |
               apk add openssh-client
 
+        - restore_cache:
+            keys: ["backend-dist"]  # -<< pipeline.id >>
         - run:
             name: Deploy backend
             command: |
               echo "My current workspace is : $(pwd)" 
-              ls -la
               echo "BUILDING THE BACKEND ENVIRONMENT FILE"
               echo ENVIROMENT=production > backend/.env
               echo TYPEORM_CONNECTION=postgres >> backend/.env
@@ -448,8 +454,8 @@ jobs:
               echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> backend/.env
               echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> backend/.env
               echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> backend/.env
-              cat .circleci/ansible/inventory.txt
-              tar -cvf backend.tar backend
+              cd /home
+              tar czf backend.tar.gz -P /home/circleci/project/backend/dist  
               ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
 
         # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
