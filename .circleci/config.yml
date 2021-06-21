@@ -208,7 +208,7 @@ jobs:
       - checkout
       - restore_cache:
           keys: ["backend-build"] # -<< pipeline.id >>
-     - run:
+      - run:
           name: Installing tar util
           command: |
             yum -y install tar gzip
