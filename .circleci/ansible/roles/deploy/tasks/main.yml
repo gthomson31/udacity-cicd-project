@@ -1,5 +1,11 @@
 ---
 
+
+- name: Creates directory
+  file:
+    path: /home/ubuntu/backend
+    state: directory
+
 - name: Copy backend dist files to remote server
   copy:
     src: /root/project/backend
@@ -16,7 +22,7 @@
   shell: |
     cd /home/ubuntu/backend
     npm run build
-    npm run prestart:prod
+
 - name: "run migrations again"
   shell: |
     cd /home/ubuntu/backend
