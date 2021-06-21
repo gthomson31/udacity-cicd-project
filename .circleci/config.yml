@@ -275,6 +275,7 @@ jobs:
           name: Install dependencies
           command: |
             apk add --update ansible
+            pip install aws
             cat .circleci/ansible/inventory.txt 
       - run:
           name: Configure server
