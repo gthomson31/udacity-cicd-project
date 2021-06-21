@@ -499,7 +499,7 @@ jobs:
               fi
 
       # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
-          - destroy-environment
+        - destroy-environment
 
 #   cloudfront-update:
 #     docker:
