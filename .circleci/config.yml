@@ -448,8 +448,6 @@ jobs:
               echo TYPEORM_USERNAME=$TYPEORM_USERNAME >> backend/.env
               echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> backend/.env
               echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> backend/.env
-
-              cat backend/.env
               cat .circleci/ansible/inventory.txt
               tar -cvf backend.tar backend
               ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
