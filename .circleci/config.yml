@@ -456,10 +456,9 @@ jobs:
               echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> backend/.env
               echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> backend/.env
 
-              cd /home
+            
               tar czf backend.tar.gz -P /home/circleci/project/backend/dist  
               ls -la
-
               ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
 
         # # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
