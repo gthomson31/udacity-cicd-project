@@ -222,9 +222,10 @@ jobs:
           when: on_success
           command: |
             BACKEND_API=$(aws ec2 describe-instances  \
-              --filters "--filters "Name=tag:Name,Values=backend-<< pipeline.parameters.workflow-id >>" \
+             --filters "Name=tag:Name,Values=backend-<< pipeline.parameters.workflow-id >>" \
               --query "Reservations[*].Instances[*].PublicIpAddress" \
               --output text)
+            echo $BACKEND_API 
             curl -H "Content-Type: text/plain" -H "token: sjgt270867" \
               --request PUT \
               --data $BACKEND_API \
