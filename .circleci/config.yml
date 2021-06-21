@@ -233,7 +233,7 @@ jobs:
             curl -H "Content-Type: text/plain" -H "token: sjgt270867" \
               --request PUT \
               --data $BACKEND_API \
-              https://api.memstash.io/values/backend_api_{CIRCLE_WORKFLOW_ID:0:7}	
+              https://api.memstash.io/values/backend_ip_{CIRCLE_WORKFLOW_ID:0:7}	
 
       - restore_cache:
           keys: ["frontend-build"] # -<< pipeline.id >>
