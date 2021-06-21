@@ -25,26 +25,23 @@ commands:
           when: on_fail
           command: aws cloudformation delete-stack --stack-name frontend-${CIRCLE_WORKFLOW_ID:0:7}
 
-
-  revert-migrations:
+  revert-migration:
     description: Revert the last migration if successfully run in the current workflow.
-    parameters:
-      # Add parameter here     
     steps:
       - run:
-          name: Revert migrations
-          # Add when this will run
+          name: Revert Migration
+          when: on_fail
           command: |
-            # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
-            SUCCESS = 1
-            if(( $SUCCESS==1 )); 
-            then
-            #  cd ~/project/backend
-            #  npm install
-            #  Add revert code here. You can find this in the Getting Started section.
-              exit 1
+            HAS_MIGRATION_RUN=$(curl -H "token: sjgt270867" --request GET https://api.memstash.io/values/migration_${CIRCLE_WORKFLOW_ID:0:7})
+            if $HAS_MIGRATION_RUN = "true"
+              then
+                cd /home/circleci/project/backend
+                echo "Reverting migrations"
+                npm run migrations:revert
+              else
+                echo "NO migration has ocurred"
+                return 0
             fi
-
 
 workflows:
   build-test-and-deploy:
@@ -53,12 +50,10 @@ workflows:
           context:
           - slack-secrets
           - slack-templates
-
       - build-backend:
           context:
           - slack-secrets
           - slack-templates
-
       - test-frontend:
           requires:
             - build-frontend
@@ -377,6 +372,7 @@ jobs:
 
       # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
       - destroy-environment
+        
 
   deploy-frontend:
     docker:
@@ -462,45 +458,45 @@ jobs:
         - destroy-environment
 
   smoke-test:
-        docker:
-          - image: python:3.7-alpine3.11
-        steps:
-          - checkout
-          - attach_workspace:
-              at: ~/
-          - run:
-              name: Install dependencies
-              command: |
-                apk add --update curl nodejs npm
-                pip install awscli
-          - run:
-              name: Frontend smoke test.
-              command: |
+      docker:
+        - image: python:3.7-alpine3.11
+      steps:
+        - checkout
+        - attach_workspace:
+            at: ~/
+        - run:
+            name: Install dependencies
+            command: |
+              apk add --update curl nodejs npm
+              pip install awscli
+        - run:
+            name: Frontend smoke test.
+            command: |
 
-                URL="http://udapeople-<< pipeline.parameters.workflow-id >>.s3-website-eu-west-1.amazonaws.com/"
-                echo $URL
+              URL="http://udapeople-<< pipeline.parameters.workflow-id >>.s3-website-eu-west-1.amazonaws.com/"
+              echo $URL
 
-                if curl -s ${URL} | grep "Welcome"
-                then
-                  return 0  
-                  echo "Smoke Test Success"
-                else
-                  return 1
-                fi
-          - run:
-              name: backend url / smoke test backend
-              command: |
-                export BACKEND_IP=$(curl -H "token: sjgt270867" --request GET https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID:0:7})
-                echo $BACKEND_IP
-                echo "http://${BACKEND_IP}:3030/api/status"
+              if curl -s ${URL} | grep "Welcome"
+              then
+                return 0  
+                echo "Smoke Test Success"
+              else
+                return 1
+              fi
+        - run:
+            name: backend url / smoke test backend
+            command: |
+              export BACKEND_IP=$(curl -H "token: sjgt270867" --request GET https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID:0:7})
+              echo $BACKEND_IP
+              echo "http://${BACKEND_IP}:3030/api/status"
 
-                if curl "http://${BACKEND_IP}:3030/api/status"
-                then
-                  return 0
-                  echo "Smoke Test Success"
-                else
-                  return 1
-                fi
+              if curl "http://${BACKEND_IP}:3030/api/status"
+              then
+                return 0
+                echo "Smoke Test Success"
+              else
+                return 1
+              fi
 
       # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
           - destroy-environment
