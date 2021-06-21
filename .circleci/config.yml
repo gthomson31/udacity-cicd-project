@@ -3,20 +3,27 @@ version: 2.1
 orbs:
   slack: circleci/slack@4.4.2
 
+parameters:
+  workflow-id:
+    type: string
+    default: "${CIRCLE_WORKFLOW_ID:0:7}"
+
 commands:
   destroy-environment:
-    description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
-    parameters:
-      workflow_id:
-        type: string   
+    description: Destroy backend and frontend stacks given a workflow ID.
     steps:
       - run:
-          name: Destroy environments
+          name: Destroy Backend Infrastructure
           when: on_fail
-          command: |
-            aws s3 rb s3://udapeople-<< pipeline.parameters.workflow-id >> --force
-            aws cloudformation delete-stack --stack-name udapeople-backend-<< parameters.workflow_id >>
-            aws cloudformation delete-stack --stack-name udapeople-frontend-<< parameters.workflow_id >>
+          command: aws cloudformation delete-stack --stack-name backend-${CIRCLE_WORKFLOW_ID:0:7}
+      - run:
+          name: Delete S3 files
+          when: on_fail
+          command: aws s3 rm s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+      - run:
+          name: Destroy Frontend Infrastructure
+          when: on_fail
+          command: aws cloudformation delete-stack --stack-name frontend-${CIRCLE_WORKFLOW_ID:0:7}
 
 
   revert-migrations:
@@ -40,9 +47,8 @@ commands:
 
 
 workflows:
-  default:
+  build-test-and-deploy:
     jobs:
-      # All Need to run on the test deployment branch to verify the code
       - build-frontend:
           context:
           - slack-secrets
@@ -54,35 +60,38 @@ workflows:
           - slack-templates
 
       - test-frontend:
-          requires: [build-frontend]
-
+          requires:
+            - build-frontend
       - test-backend:
-          requires: [build-backend]
-
-      - scan-backend:
-          requires: [build-backend]
-
+          requires:
+            - build-backend
       - scan-frontend:
-          requires: [build-frontend]
+          requires:
+            - test-frontend
+      - scan-backend:
+          requires:
+            - test-backend
 
       - deploy-infrastructure:
-          requires: [test-frontend, test-backend, scan-frontend, scan-backend]
+          requires:
+            - scan-frontend
+            - scan-backend
 
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-         
+        
       - run-migrations:
           requires: [configure-infrastructure]
-  
+
       - deploy-frontend:
           requires: [run-migrations]
 
       - deploy-backend:
           requires: [run-migrations]
-  
+
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
-       
+      
 
 jobs:
   build-frontend:
@@ -204,8 +213,6 @@ jobs:
       - checkout
       - restore_cache:
           keys: ["backend-build"] # -<< pipeline.id >>
- 
-      - run: yum -y install tar gzip
       - run:
           name: Deploying the backend Infrastructure
           command: |
@@ -215,14 +222,19 @@ jobs:
               --tags Name="backend-<< pipeline.parameters.workflow-id >>" \
               --stack-name "udapeople-backend-<< pipeline.parameters.workflow-id >>" \
               --parameter-overrides ID="<< pipeline.parameters.workflow-id >>"
+      - run:
+          name: Save Backend URL
+          when: on_success
+          command: |
+            BACKEND_API=$(aws ec2 describe-instances  \
+              --filters "--filters "Name=tag:Name,Values=backend-<< pipeline.parameters.workflow-id >>" \
+              --query "Reservations[*].Instances[*].PublicIpAddress" \
+              --output text)
+            curl -H "Content-Type: text/plain" -H "token: sjgt270867" \
+              --request PUT \
+              --data $BACKEND_API \
+              https://api.memstash.io/values/backend_api_{CIRCLE_WORKFLOW_ID:0:7}	
 
-            export BACKEND_IP=$(aws ec2 describe-instances --region eu-west-1 --query "Reservations[*].Instances[*].PublicIpAddress"  --filters "Name=tag:Name,Values=backend-<< pipeline.parameters.workflow-id >>"  --output text)
-            echo "Confirming EC2 instance has been created"
-            echo BACKEND_IP : $BACKEND_IP
-            echo CIRCLE CI RUN : ${CIRCLE_WORKFLOW_ID:0:7}
-            echo Memstash URL : https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID:0:7}
-            curl -H "Content-Type: text/plain" -H "token: sjgt270867"  --request PUT --data "$BACKEND_IP" https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID:0:7}	
- 
       - restore_cache:
           keys: ["frontend-build"] # -<< pipeline.id >>
 
@@ -236,7 +248,6 @@ jobs:
               --stack-name "udapeople-frontend-<< pipeline.parameters.workflow-id >>" \
               --parameter-overrides ID="<< pipeline.parameters.workflow-id >>"  
       - run:
-          # Writes out the IP into an inventory file to use for Ansible Configuration
           name: Add back-end ip to ansible inventory
           command: |
             aws ec2 describe-instances \
@@ -249,8 +260,7 @@ jobs:
             - project/.circleci/ansible/inventory.txt
             - backend/            
     
-      # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
-      - destroy-environment:
+      - destroy-environment
 
   configure-infrastructure:
     docker:
@@ -284,8 +294,7 @@ jobs:
             ansible-playbook -i inventory.txt configure-server.yml
 
       # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
-      - destroy-environment:
-          workflow_id: ${CIRCLE_WORKFLOW_ID:0:7}    
+      - destroy-environment   
 
   run-migrations:
     docker:
@@ -494,7 +503,7 @@ jobs:
                 fi
 
       # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
-          - destroy-environment:
+          - destroy-environment
 
 #   cloudfront-update:
 #     docker:
