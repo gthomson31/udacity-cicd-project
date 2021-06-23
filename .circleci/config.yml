@@ -95,8 +95,10 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [frontend-build-${CIRCLE_WORKFLOW_ID:0:7}] # -<< pipeline.id >>
+          keys: 
+            - frontend-build-${CIRCLE_WORKFLOW_ID:0:7}
           context: slack-secrets
+          
       - run:
           name: Build front-end
           command: |
@@ -104,9 +106,13 @@ jobs:
             npm install
             npm run build
             ls
+            
       - save_cache:
-          paths: [frontend/node_modules]
-          key: frontend-build # -<< pipeline.id >>
+          paths: 
+            - frontend/node_modules
+            - frontend/dist
+          key: frontend-build-${CIRCLE_WORKFLOW_ID}
+
       - slack/notify:
           channel: build-alerts
           event: pass
@@ -122,7 +128,8 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [backend-build-${CIRCLE_WORKFLOW_ID:0:7}] # -<< pipeline.id >>
+          keys: 
+            - backend-build-${CIRCLE_WORKFLOW_ID:0:7}
           context: slack-secrets
       - run:
           name: Build backend
@@ -134,11 +141,13 @@ jobs:
 
       - save_cache:
           paths: [backend/node_modules]
-          key: backend-build  # -<< pipeline.id >>
+          key: backend-build  
 
       - save_cache:
-          paths: [backend/dist]
-          key: backend-dist  # -<< pipeline.id >>
+          paths: 
+            - backend/node_modules
+            - backend/dist
+          key: backend-build-${CIRCLE_WORKFLOW_ID}
       - slack/notify:
           channel: build-alerts      
           event: fail
@@ -151,7 +160,8 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [frontend-build-${CIRCLE_WORKFLOW_ID:0:7}] # -<< pipeline.id >>
+          keys: 
+            - frontend-build-${CIRCLE_WORKFLOW_ID} 
       - run:
           name: test-frontend
           command: |
@@ -165,7 +175,8 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [backend-build-${CIRCLE_WORKFLOW_ID:0:7}] # -<< pipeline.id >>
+          keys: 
+            - backend-build-${CIRCLE_WORKFLOW_ID}
       - run:
           name: backend-build-<< pipeline.parameters.workflow-id >>-test
           command: |
@@ -179,7 +190,8 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [frontend-build-${CIRCLE_WORKFLOW_ID:0:7}] # -<< pipeline.id >>
+          keys: 
+            - frontend-build-${CIRCLE_WORKFLOW_ID} 
       - run:
           name: frontend-build-<< pipeline.parameters.workflow-id >>-test
           command: |
@@ -193,7 +205,8 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [backend-build-${CIRCLE_WORKFLOW_ID:0:7}] # -<< pipeline.id >>
+          keys: 
+            - backend-build-${CIRCLE_WORKFLOW_ID}  
       - run:
           name: backend-build-<< pipeline.parameters.workflow-id >>-test
           command: |
@@ -207,7 +220,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [backend-build-${CIRCLE_WORKFLOW_ID:0:7}] # -<< pipeline.id >>
+          keys: [backend-build-${CIRCLE_WORKFLOW_ID:0:7}] 
       - run:
           name: Installing tar util
           command: |
@@ -245,7 +258,8 @@ jobs:
               $URL
 
       - restore_cache:
-          keys: [frontend-build-${CIRCLE_WORKFLOW_ID:0:7}] # -<< pipeline.id >>
+          keys: 
+            - frontend-build-${CIRCLE_WORKFLOW_ID} 
 
       - run:
           name: Deploying the front end Infrastructure
@@ -301,6 +315,12 @@ jobs:
             cat backend/.env
             cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
+
+      - run:
+          name: Install AWS CLI for rollback
+          when: on_fail
+          command: |
+            apk add --update py3-pip && pip3 install --upgrade pip && pip3 install awscli
 
       # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
       - destroy-environment   
@@ -460,7 +480,8 @@ jobs:
               apk add openssh-client
 
         - restore_cache:
-            keys: ["backend-dist"]  # -<< pipeline.id >>
+            keys: backend-build-${CIRCLE_WORKFLOW_ID}
+            
         - run:
             name: Deploy backend
             command: |
@@ -478,9 +499,17 @@ jobs:
               echo TYPEORM_PASSWORD=$TYPEORM_PASSWORD >> backend/.env
               echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> backend/.env
 
-            
-              tar czf backend.tar.gz -P /home/.circleci/project/backend/
-              ls -la
+              cd backend
+              npm i
+              npm run build
+              tar -czvf /etc/backend.tar.gz ./ 
+              chmod 644 /etc/backend.tar.gz  
+
+              pwd          
+
+        - run:
+            name: Deploy Ansible playbook
+            command: |
               ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
 
         # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
