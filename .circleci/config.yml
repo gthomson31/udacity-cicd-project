@@ -140,10 +140,6 @@ jobs:
             ls
 
       - save_cache:
-          paths: [backend/node_modules]
-          key: backend-build  
-
-      - save_cache:
           paths: 
             - backend/node_modules
             - backend/dist
@@ -502,10 +498,10 @@ jobs:
               cd backend
               npm i
               npm run build
-              tar -czvf /etc/backend.tar.gz ./ 
-              chmod 644 /etc/backend.tar.gz  
-
-              pwd          
+              tar -czvf backend.tar.gz /root/project/.
+              chmod 644 backend.tar.gz  
+              cd /root/project/
+              ls -la       
 
         - run:
             name: Deploy Ansible playbook
