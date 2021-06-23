@@ -21,6 +21,7 @@
 - name: building node services
   shell: |
     cd /home/ubuntu/backend
+    ls -la 
     sudo npm run build
 
     

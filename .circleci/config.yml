@@ -432,7 +432,7 @@ jobs:
             cd frontend
             npm install
             npm run build
-            aws s3 sync dist s3://udapeople-<< pipeline.parameters.workflow-id >>"
+            aws s3 sync dist s3://udapeople-<< pipeline.parameters.workflow-id >>
 
       # # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
       # - destroy-environment
@@ -479,7 +479,7 @@ jobs:
               echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> backend/.env
 
             
-              tar czf backend.tar.gz -P /home/circleci/project/backend/dist  
+              tar czf backend.tar.gz -P /home/circleci/project/backend/
               ls -la
               ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
 
