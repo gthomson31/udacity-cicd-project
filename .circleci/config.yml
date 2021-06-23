@@ -416,21 +416,26 @@ jobs:
             export API_URL="http://${BACKEND_IP}:3030"
 
             echo "$API_URL"
-            echo "$API_URL" > apiurl.txt
+            echo "$API_URL" > ~/api_url.txt
+            ls ~/api_url.txt
 
             pwd 
       - run:
           name: Deploy frontend objects
           command: |
             pwd
-            export API_URL=$(cat apiurl.txt)
+            ls
+            export API_URL=$(cat ~/api_url.txt)
+            echo $API_URL
+
+
             cd frontend
             npm install
             npm run build
             aws s3 sync dist s3://udapeople-<< pipeline.parameters.workflow-id >>"
 
-      # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
-      - destroy-environment
+      # # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
+      # - destroy-environment
                     
   deploy-backend:
       docker:
