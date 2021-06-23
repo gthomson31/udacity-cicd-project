@@ -95,7 +95,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: [frontend-build] # -<< pipeline.id >>
+          keys: [frontend-build-${CIRCLE_WORKFLOW_ID:0:7}] # -<< pipeline.id >>
           context: slack-secrets
       - run:
           name: Build front-end
@@ -122,7 +122,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: ["backend-build"] # -<< pipeline.id >>
+          keys: [backend-build-${CIRCLE_WORKFLOW_ID:0:7}] # -<< pipeline.id >>
           context: slack-secrets
       - run:
           name: Build backend
@@ -151,7 +151,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: ["frontend-build"] # -<< pipeline.id >>
+          keys: [frontend-build-${CIRCLE_WORKFLOW_ID:0:7}] # -<< pipeline.id >>
       - run:
           name: test-frontend
           command: |
@@ -165,7 +165,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: ["backend-build"] # -<< pipeline.id >>
+          keys: [backend-build-${CIRCLE_WORKFLOW_ID:0:7}] # -<< pipeline.id >>
       - run:
           name: backend-build-<< pipeline.parameters.workflow-id >>-test
           command: |
@@ -179,7 +179,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: ["frontend-build"] # -<< pipeline.id >>
+          keys: [frontend-build-${CIRCLE_WORKFLOW_ID:0:7}] # -<< pipeline.id >>
       - run:
           name: frontend-build-<< pipeline.parameters.workflow-id >>-test
           command: |
@@ -193,7 +193,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: ["backend-build"] # -<< pipeline.id >>
+          keys: [backend-build-${CIRCLE_WORKFLOW_ID:0:7}] # -<< pipeline.id >>
       - run:
           name: backend-build-<< pipeline.parameters.workflow-id >>-test
           command: |
@@ -207,7 +207,7 @@ jobs:
     steps:
       - checkout
       - restore_cache:
-          keys: ["backend-build"] # -<< pipeline.id >>
+          keys: [backend-build-${CIRCLE_WORKFLOW_ID:0:7}] # -<< pipeline.id >>
       - run:
           name: Installing tar util
           command: |
@@ -245,7 +245,7 @@ jobs:
               $URL
 
       - restore_cache:
-          keys: ["frontend-build"] # -<< pipeline.id >>
+          keys: [frontend-build-${CIRCLE_WORKFLOW_ID:0:7}] # -<< pipeline.id >>
 
       - run:
           name: Deploying the front end Infrastructure
@@ -479,7 +479,7 @@ jobs:
               echo TYPEORM_DATABASE=$TYPEORM_DATABASE >> backend/.env
 
             
-              tar czf backend.tar.gz -P /home/circleci/project/backend/
+              tar czf backend.tar.gz -P /home/.circleci/project/backend/
               ls -la
               ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
 
