@@ -7,7 +7,7 @@
 - name: Copy backend file repo 
   become: true
   copy:
-    src: /home/backend.tar.gz
+    src: /root/project/backend.tar.gz
     dest: /home/ubuntu/backend.tar.gz
 
 - name: Install Node modules

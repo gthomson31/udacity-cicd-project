@@ -402,12 +402,14 @@ jobs:
 
             echo "${API_URL}"
             echo "${API_URL}" > apiurl.txt
+
+            pwd 
       - run:
           name: Deploy frontend objects
           command: |
             pwd
-            cd frontend
             export API_URL=$(cat apiurl.txt)
+            cd frontend
             npm install
             npm run build
             aws s3 sync dist s3://udapeople-<< pipeline.parameters.workflow-id >>"
