@@ -229,21 +229,21 @@ jobs:
              --filters "Name=tag:Name,Values=backend-<< pipeline.parameters.workflow-id >>" \
               --query "Reservations[*].Instances[*].PublicIpAddress" \
               --output text)
+
+            export URL=https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID:0:7}
+
+            echo $URL
             echo $BACKEND_API 
+
             curl -H "Content-Type: text/plain" -H "token: sjgt270867" \
               --request PUT \
               --data $BACKEND_API \
-              https://api.memstash.io/values/backend_ip_{CIRCLE_WORKFLOW_ID:0:7}
-
+              $URL
 
             curl -H "Content-Type: text/plain" -H "token: sjgt270867" \
               --request GET \
-              https://api.memstash.io/values/backend_ip_{CIRCLE_WORKFLOW_ID:0:7}
+              $URL
 
-
-            echo "curl -H "Content-Type: text/plain" -H "token: sjgt270867" \
-              --request GET \
-              https://api.memstash.io/values/backend_ip_{CIRCLE_WORKFLOW_ID:0:7}"
       - restore_cache:
           keys: ["frontend-build"] # -<< pipeline.id >>
 
@@ -403,14 +403,20 @@ jobs:
           command: |
             #Use Memstash to pull out backend ip
 
-            echo "URL to call on for IP : https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID:0:7}"
-            export BACKEND_IP=$(curl -H "token: sjgt270867" --request GET https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID:0:7})
             
+            export URL=https://api.memstash.io/values/backend_ip_${CIRCLE_WORKFLOW_ID:0:7}
+
+            echo "URL to call on for IP : $URL"
+
+            export BACKEND_IP=$( curl -H "Content-Type: text/plain" -H "token: sjgt270867" \
+            --request GET \
+            $URL )
+
             echo $BACKEND_IP
             export API_URL="http://${BACKEND_IP}:3030"
 
-            echo "${API_URL}"
-            echo "${API_URL}" > apiurl.txt
+            echo "$API_URL"
+            echo "$API_URL" > apiurl.txt
 
             pwd 
       - run:
