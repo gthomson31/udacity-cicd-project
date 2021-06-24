@@ -71,6 +71,9 @@ workflows:
           requires:
             - scan-frontend
             - scan-backend
+          filters:
+            branches:
+              only: [master]
 
       - configure-infrastructure:
           requires: [deploy-infrastructure]
