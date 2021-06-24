@@ -402,7 +402,7 @@ jobs:
 
       # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
       - destroy-environment
-      - revert-migrations
+      - revert-migration
 
   deploy-frontend:
     docker:
@@ -452,7 +452,7 @@ jobs:
 
       # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
       - destroy-environment
-      - revert-migrations
+      - revert-migration
 
   deploy-backend:
       docker:
@@ -510,7 +510,7 @@ jobs:
 
         # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
         - destroy-environment
-        - revert-migrations
+        - revert-migration
 
   smoke-test:
       docker:
@@ -555,7 +555,7 @@ jobs:
 
       #On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
         - destroy-environment
-        - revert-migrations
+        - revert-migration
 #   cloudfront-update:
 #     docker:
 #       # Docker image here that supports AWS CLI
