@@ -556,20 +556,35 @@ jobs:
       #On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
         - destroy-environment
         - revert-migration
-#   cloudfront-update:
-#     docker:
-#       # Docker image here that supports AWS CLI
-#     steps:
-#       # Checkout code from git
-#       - run:
-#           name: Install dependencies
-#           command: |
-#             # your code here
-#       - run:
-#           name: Update cloudfront distribution
-#           command: |
-#             # your code here
-#       # Here's where you will add some code to rollback on failure  
+
+  cloudfront-update:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Install dependencies
+          command: |
+              apk add --update tar gzip nodejs npm curl
+      - run:
+          name: Get old stack workflow id
+          command: |
+              OldWorkflowID=$(aws cloudformation \
+              list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+              --no-paginate --output text)
+              echo $OldWorkflowID >> ~/OldWorkflowID.txt
+              cat ~/OldWorkflowID.txt
+      - run:
+          name: Update cloudfront distribution
+          no_output_timeout: 30m
+          command: |
+            pwd
+            ls -la
+            aws cloudformation deploy \
+              --template-file ".circleci/files/cloudfront.yml" \
+              --stack-name udapeople-deployment \
+              --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
+              --tags project=udapeople
 
 # cleanup:
 #     docker:
