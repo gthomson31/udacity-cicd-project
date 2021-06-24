@@ -402,7 +402,7 @@ jobs:
 
       # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
       - destroy-environment
-        
+      - revert-migrations
 
   deploy-frontend:
     docker:
@@ -450,9 +450,10 @@ jobs:
             npm run build
             aws s3 sync dist s3://udapeople-<< pipeline.parameters.workflow-id >>
 
-      # # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
-      # - destroy-environment
-                    
+      # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
+      - destroy-environment
+      - revert-migrations
+
   deploy-backend:
       docker:
         - image: python:3.7-alpine3.11
@@ -508,7 +509,8 @@ jobs:
               ansible-playbook -i inventory.txt deploy-backend.yml
 
         # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
-        # - destroy-environment
+        - destroy-environment
+        - revert-migrations
 
   smoke-test:
       docker:
@@ -545,15 +547,15 @@ jobs:
 
               if curl "http://${BACKEND_IP}:3030/api/status"
               then
-                return 0
+                return 1
                 echo "Smoke Test Success"
               else
                 return 1
               fi
 
-      # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
-        # - destroy-environment
-
+      #On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
+        - destroy-environment
+        - revert-migrations
 #   cloudfront-update:
 #     docker:
 #       # Docker image here that supports AWS CLI
