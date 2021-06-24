@@ -498,13 +498,14 @@ jobs:
               cd backend
               npm i
               npm run build
-              tar -czvf backend.tar.gz /root/project/
-              chmod 644 backend.tar.gz  
-
-        - run:
-            name: Deploy Ansible playbook
-            command: |
-              ansible-playbook -i .circleci/ansible/inventory.txt .circleci/ansible/deploy-backend.yml
+              tar -czvf /etc/artifact.tar.gz ./
+              chmod 644 /etc/artifact.tar.gz
+              echo "here"
+              cd ..
+              pwd
+              cd .circleci/ansible
+              cat inventory.txt
+              ansible-playbook -i inventory.txt deploy-backend.yml
 
         # On deployment Failure the destroy enviroment commands will be ran to tear down the stacks
         # - destroy-environment

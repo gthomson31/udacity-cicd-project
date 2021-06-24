@@ -1,33 +1,22 @@
 ---
 
-- name: Check current directorys 
-  shell: |
-    ls -la
+- name: "Create directory"
+  become_user: true
+  file:
+    path: ~/udapeople/
+    state: directory
 
-- name: Copy backend file repo 
-  become: true
-  copy:
-    src: /root/project/backend.tar.gz
-    dest: /home/ubuntu/backend.tar.gz
 
-- name: Install Node modules
-  shell: |
-    tar xzvf backend.tar.gz -C /home/ubuntu/
-    cd /home/ubuntu/backend
-    npm install
-    
+- name: "deploy backend"
+  become_user: true
+  unarchive:
+    src: /etc/artifact.tar.gz
+    dest: ~/udapeople/
 
-- name: building node services
+- name: "run backend"
+  become_user: true
   shell: |
-    cd /home/ubuntu/backend
-    ls -la 
-    sudo npm run build
-
-    
-- name: starting up PM2
-  become: true
-  shell: |
-    cd /home/ubuntu/backend 
-    pm2 start npm --name backend -- start
-    pm2 ls
+    cd ~/udapeople/
+    npm i
+    pm2 start npm -- run start
 
