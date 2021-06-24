@@ -500,8 +500,6 @@ jobs:
               npm run build
               tar -czvf backend.tar.gz /root/project/
               chmod 644 backend.tar.gz  
-              cd /root/project/
-              ls -la       
 
         - run:
             name: Deploy Ansible playbook
