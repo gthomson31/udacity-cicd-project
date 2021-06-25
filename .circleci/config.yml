@@ -442,7 +442,7 @@ jobs:
             echo "$API_URL"
             echo "$API_URL" > ~/api_url.txt
             echo API_URL="http://${BACKEND_IP}:3030" >> "frontend/.env"
-            
+
             ls ~/api_url.txt
 
             pwd 
@@ -493,6 +493,7 @@ jobs:
               ls -la
               echo "My current workspace is : $(pwd)" 
               echo "BUILDING THE BACKEND ENVIRONMENT FILE"
+              echo NODE_ENV=production >> "backend/.env"
               echo ENVIROMENT=production > backend/.env
               echo TYPEORM_CONNECTION=postgres >> backend/.env
               echo TYPEORM_MIGRATIONS_DIR=./src/migrations >> backend/.env
