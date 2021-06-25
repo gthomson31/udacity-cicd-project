@@ -437,10 +437,12 @@ jobs:
             $URL )
 
             echo $BACKEND_IP
-            export API_URL="https://${BACKEND_IP}:3030"
+            export API_URL="http://${BACKEND_IP}:3030"
 
             echo "$API_URL"
             echo "$API_URL" > ~/api_url.txt
+            echo API_URL="http://${BACKEND_IP}:3030" >> "frontend/.env"
+            
             ls ~/api_url.txt
 
             pwd 
@@ -451,8 +453,6 @@ jobs:
             ls
             export API_URL=$(cat ~/api_url.txt)
             echo $API_URL
-
-
             cd frontend
             npm install
             npm run build
